@@ -7,9 +7,11 @@
 void Payload::reboot() {
     Serial.println("rebooting payload");
 
-    // TODO: pull payload power pin low, wait, then high
+    digitalWrite(PIN_PAYLOAD_POWER, LOW);
+    delay(1000);
+    digitalWrite(PIN_PAYLOAD_POWER, HIGH);
 
-    // Serial2.end();
+    SERIAL_PAYLOAD.end();
     SERIAL_PAYLOAD.begin(9600);
 
     state = PayloadState::BOOTING;
@@ -105,6 +107,11 @@ String Payload::get_response(String cmd) {
     }
 
     return ret;
+}
+
+
+String Payload::get_status() {
+    return status_str;
 }
 
 

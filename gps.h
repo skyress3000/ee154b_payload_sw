@@ -4,7 +4,7 @@
 class GPS {
 public:
     void init();
-    void smart_delay(unsigned long ms);
+    void update(unsigned long ms);
     void check_location_valid();
     float get_lat();
     float get_lng();

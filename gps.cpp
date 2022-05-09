@@ -9,7 +9,7 @@ void GPS::init() {
 }
 
 
-void GPS::smart_delay(unsigned long ms) {
+void GPS::update(unsigned long ms) {
     unsigned long start = millis();
     while (millis() - start < ms) {
         while (SERIAL_GPS.available()) {
