@@ -1,11 +1,6 @@
 #include <Arduino.h>
 
 
-#define PIN_PAYLOAD_POWER 3
-#define N_ATTEMPTS 5
-#define PAYLOAD_TIMEOUT 500
-
-
 enum PayloadState {
     BOOTING,
     WORKING,

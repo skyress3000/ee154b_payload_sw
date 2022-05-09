@@ -1,5 +1,8 @@
 #include "payload.h"
 
+#include "config.h"
+#include "indicators.h"
+
 
 void Payload::reboot() {
     Serial.println("rebooting payload");
@@ -7,31 +10,32 @@ void Payload::reboot() {
     // TODO: pull payload power pin low, wait, then high
 
     // Serial2.end();
-    Serial2.begin(9600);
+    SERIAL_PAYLOAD.begin(9600);
 
     state = PayloadState::BOOTING;
+    set_led(PIN_LED_LKM);
 }
 
 
 void Payload::update() {
     switch (state) {
         case PayloadState::BOOTING:
-            Serial.print(Serial2.available()); Serial.println(" chars");
+            Serial.print(SERIAL_PAYLOAD.available()); Serial.println(" chars");
 
-            if (Serial2.available() >= 12 + 30 + 5) { // number of chars in initialization message
+            if (SERIAL_PAYLOAD.available() >= 12 + 30 + 5) { // number of chars in initialization message
                 Serial.println("payload done booting");
 
                 // Request new baudrate
-                Serial2.print("$DATA,");
-                Serial2.print(baudrate);
-                Serial2.print(";");
-                Serial2.flush();
+                SERIAL_PAYLOAD.print("$DATA,");
+                SERIAL_PAYLOAD.print(baudrate);
+                SERIAL_PAYLOAD.print(";");
+                SERIAL_PAYLOAD.flush();
 
                 // Wait for request to send, then re-open serial connection with new baudrate
                 delay(1000);
-                Serial2.end();
-                Serial2.begin(baudrate);
-                Serial2.setTimeout(PAYLOAD_TIMEOUT);
+                SERIAL_PAYLOAD.end();
+                SERIAL_PAYLOAD.begin(baudrate);
+                SERIAL_PAYLOAD.setTimeout(PAYLOAD_TIMEOUT);
                 delay(1000);
 
                 Serial.print("payload ready at ");
@@ -39,6 +43,7 @@ void Payload::update() {
                 Serial.println(" baud");
 
                 state = PayloadState::WORKING;
+                unset_led(PIN_LED_LKM);
             }
             break;
 
@@ -46,9 +51,12 @@ void Payload::update() {
             status_str = get_response("$STAT,;");
             if (status_str.length() == 0) {
                 state = PayloadState::UNRESPONSIVE;
+                blink_led(PIN_LED_LKM);
                 Serial.println("payload unresponsive");
             } else {
                 state = PayloadState::WORKING;
+                blink_led(PIN_LED_LKM);
+                blink_led(PIN_LED_LKM);
                 Serial.print("payload status: ");
                 Serial.println(status_str.c_str());
             }
@@ -101,10 +109,10 @@ String Payload::get_response(String cmd) {
 
 
 unsigned int Payload::write(String cmd) {
-    return Serial2.write(cmd.c_str());
+    return SERIAL_PAYLOAD.write(cmd.c_str());
 }
 
 
 String Payload::read() {
-    return Serial2.readStringUntil('\n');
+    return SERIAL_PAYLOAD.readStringUntil('\n');
 }
