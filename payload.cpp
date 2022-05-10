@@ -5,13 +5,15 @@
 
 
 void Payload::reboot() {
+    pinMode(PIN_PAYLOAD_POWER, OUTPUT);
+
     Serial.println("rebooting payload");
 
     digitalWrite(PIN_PAYLOAD_POWER, LOW);
     delay(1000);
     digitalWrite(PIN_PAYLOAD_POWER, HIGH);
 
-    SERIAL_PAYLOAD.end();
+    // SERIAL_PAYLOAD.end();
     SERIAL_PAYLOAD.begin(9600);
 
     state = PayloadState::BOOTING;
@@ -22,8 +24,6 @@ void Payload::reboot() {
 void Payload::update() {
     switch (state) {
         case PayloadState::BOOTING:
-            Serial.print(SERIAL_PAYLOAD.available()); Serial.println(" chars");
-
             if (SERIAL_PAYLOAD.available() >= 12 + 30 + 5) { // number of chars in initialization message
                 Serial.println("payload done booting");
 
@@ -54,13 +54,10 @@ void Payload::update() {
             if (status_str.length() == 0) {
                 state = PayloadState::UNRESPONSIVE;
                 blink_led(PIN_LED_LKM);
-                Serial.println("payload unresponsive");
             } else {
                 state = PayloadState::WORKING;
                 blink_led(PIN_LED_LKM);
                 blink_led(PIN_LED_LKM);
-                Serial.print("payload status: ");
-                Serial.println(status_str.c_str());
             }
             break;
     }

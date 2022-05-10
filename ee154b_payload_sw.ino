@@ -15,36 +15,37 @@ Sensors sensors;
 
 
 void setup() {
+    indicators_init();
     set_led(PIN_LED_SENSORS);
     set_led(PIN_LED_RF);
     set_led(PIN_LED_LKM);
     set_led(PIN_LED_SD);
-    set_led(PIN_LED_POWER);
     set_led(PIN_LED_GPS);
 
     Serial.begin(9600);
+    Serial.println("beginning boot");
     gps.init();
     logger.init();
     sensors.init();
 
     delay(1000);
+    Serial.println("boot done");
 
     unset_led(PIN_LED_SENSORS);
     unset_led(PIN_LED_RF);
     unset_led(PIN_LED_LKM);
     unset_led(PIN_LED_SD);
-    unset_led(PIN_LED_POWER);
     unset_led(PIN_LED_GPS);
 
     delay(100);
 
+    payload.reboot();
     logger.write_header(
         "timestamp,lat,lng,altitude,"
         "temp_int,temp_ext,pressure,current,"
         "accel_x,accel_y,accel_z,rot_x,rot_y,rot_z,"
         "heater,payload_status"
     );
-    payload.reboot();
 }
 
 

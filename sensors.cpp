@@ -5,9 +5,14 @@
 #include "config.h"
 
 
+
+#define LSM9DS1_M  0x1C // Would be 0x1C if SDO_M is LOW
+#define LSM9DS1_AG 0x6A // Would be 0x6A if SDO_AG is LOW
+
+
 void Sensors::init() {
-    Wire.begin();
-    atm_sensor.beginI2C();
+    Wire1.begin();
+    atm_sensor.beginI2C(Wire1);
     imu.begin();
 }
 

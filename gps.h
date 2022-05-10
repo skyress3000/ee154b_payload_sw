@@ -5,7 +5,6 @@ class GPS {
 public:
     void init();
     void update(unsigned long ms);
-    void check_location_valid();
     float get_lat();
     float get_lng();
     float get_alt();
