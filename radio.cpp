@@ -65,6 +65,7 @@ void read_radio() {
             // indicate command finished
             SERIAL_RADIO.write(DONE_BYTE);
             // send the response back once done
+            SERIAL_RADIO.write(resp_len);
             SERIAL_RADIO.write(resp, resp_len);
         } else {
             // got an invalid command
