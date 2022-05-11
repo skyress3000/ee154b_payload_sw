@@ -3,6 +3,11 @@
 #include "config.h"
 
 
+void Heater::init() {
+    pinMode(PIN_HEATER, OUTPUT);
+}
+
+
 void Heater::update() {
     unsigned int voltage = analogRead(PIN_THERMISTOR);
     float res2 = res1 * (1023.0 / (float)voltage - 1.0);

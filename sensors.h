@@ -19,4 +19,5 @@ private:
     const float current_slope = 0.17, current_offset = 2.5;
     BME280 atm_sensor;
     LSM9DS1 imu;
+    bool initialized = false;
 };

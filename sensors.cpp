@@ -12,9 +12,8 @@
 
 
 void Sensors::init() {
-    Wire1.begin();
-    atm_sensor.beginI2C(Wire1);
-    imu.begin();
+    Wire.begin();
+    initialized = atm_sensor.beginI2C() && imu.begin();
 }
 
 
@@ -23,6 +22,7 @@ void Sensors::update() {
     if (imu.gyroAvailable()) imu.readGyro();
 
     blink_led(PIN_LED_SENSORS);
+    if (initialized) blink_led(PIN_LED_SENSORS);
 }
 
 

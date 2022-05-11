@@ -1,5 +1,6 @@
 class Heater {
 public:
+    void init();
     void update();
     float get_temp();
     unsigned int get_pwm();

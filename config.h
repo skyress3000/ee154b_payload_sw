@@ -8,17 +8,17 @@
 #define PIN_THERMISTOR A1
 #define PIN_CURRENT A0
 #define PIN_SD_CS 10
-#define PIN_LED_SENSORS 45
-#define PIN_LED_RF 47
-#define PIN_LED_LKM 49
+#define PIN_LED_LKM 45
+#define PIN_LED_GPS 47
+#define PIN_LED_SENSORS 49
 #define PIN_LED_SD 51
-#define PIN_LED_GPS 53
+#define PIN_LED_RF 53
 
 #define SERIAL_RADIO Serial1
 #define SERIAL_PAYLOAD Serial2
 #define SERIAL_GPS Serial3
 
-#define BLINK_TIME 50 // ms
+#define BLINK_TIME 100 // ms
 
 #define LOG_FILENAME "log.csv"
 

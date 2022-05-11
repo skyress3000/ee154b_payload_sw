@@ -47,7 +47,7 @@ void setup() {
     payload.reboot();
     logger.write_header(
         "timestamp,lat,lng,altitude,"
-        "temp_int,temp_ext,pressure,current,"
+        "temp_payload,temp_int,pressure,current,"
         "accel_x,accel_y,accel_z,rot_x,rot_y,rot_z,"
         "heater,payload_status"
     );
@@ -60,8 +60,8 @@ void loop() {
     // Update everything
     payload.update();
     gps.update(1000);
-    heater.update();
     sensors.update();
+    heater.update();
     hatch.update();
 
     if (gps.get_alt() >= HATCH_OPEN_ALT) hatch.open();
