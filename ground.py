@@ -13,38 +13,50 @@ STAT_BYTE   = b'\x55' # byte indicating payload status message
 ser = None
 ser_lock = threading.Lock() # idk if the serial object will like being called from multiple threads so lock it just to be sure
 
-command_list: {
+command_list = {
 	"EXAMPLE_COMMAND": {
 		"arg_type": "string", # either "string", "int", or "none"
 		"arg_len": 2, # number of bytes the argument should take
 		"encoding": b'e' # character representing this command, should match radio.cpp table
+	},
+	"ECHO": { # for testing
+		"arg_type": "string", 
+		"arg_len": 16,
+		"encoding": b'E'
 	}
 }
 
 def serial_logging():
+	# reset the serial port so we don't have junk in the buffer to start
+	ser.reset_input_buffer()
 	while True:
 		if ser.in_waiting > 0:
 			ser_lock.acquire()
 			resp_byte = ser.read()
-			if(resp_byte == ACK_BYTE) {
+			if(resp_byte == ACK_BYTE):
 				logging.info("Command acknowledged")
-			} else if(resp_byte == ERR_BYTE) {
+			elif(resp_byte == ERR_BYTE):
 				logging.warning("Error receiving command!")
-			} else if(resp_byte == DONE_BYTE) {
+			elif(resp_byte == DONE_BYTE):
 				resp_len = ser.read()
 				resp_str = ser.read(int.from_bytes(resp_len, 'little'))
 				logging.info(f"Command response: {resp_str.decode('ascii')}")
-			} else if(resp_byte == STAT_BYTE) {
+			elif(resp_byte == STAT_BYTE):
 				stat_str = ser.readline().decode('ascii')
-				logging.info(f"Payload status: {stat_str}")
-			} else {
+				logging.info(f"Payload status: {stat_str}"[:-1])
+			else:
 				logging.warning(f"Unknown byte received: {int.from_bytes(resp_byte, 'little'):#02x}")
-			}
+			
 			ser_lock.release()
 
 if __name__ == "__main__":
 	format = "[%(levelname)s] %(asctime)s: %(message)s"
-	logging.basicConfig(filename='ee154b_HAB_comms.log', format=format, level=logging.INFO)
+	logging.basicConfig(handlers=[
+        logging.FileHandler("ee154b_HAB_comms.log"),
+        logging.StreamHandler()
+    ], format=format, level=logging.INFO)
+
+	logging.info("--- Starting ground station interface ---")
 
 	ports = serial.tools.list_ports.comports()
 
@@ -54,33 +66,35 @@ if __name__ == "__main__":
 	        	ser.baudrate = 9600
 	        	logging.info("Connecting to {}: {} [{}]".format(port, desc, hwid))
 
-	serial_logging_thread = threading.Thread(target=thread_function, daemon=True)
+	serial_logging_thread = threading.Thread(target=serial_logging, daemon=True)
+	serial_logging_thread.start()
 
 	print("Available commands:")
 	for cmd in command_list.keys():
 		print(cmd)
 
 	while True:
-		cmd = input("Input command: ")
+		cmd = input("Input new command below ----\n")
 		if not cmd in command_list.keys():
 			logging.warning(f"Unrecognized command! {cmd}")
 		else:
 			try:
 				arg = b''
 				if command_list[cmd]["arg_type"] == "string":
-					# just truncate to argument length
-					arg = input("Argument: ")[:command_list[cmd]["arg_len"]].encode('ascii')
+					arg_str = input("Argument: ")
+					# truncate to argument length if needed, and add extra 0s if needed to get to the correct length
+					arg = arg_str[:min(command_list[cmd]["arg_len"], len(arg_str))].encode('ascii') + b'\x00'*max(0, command_list[cmd]["arg_len"]-len(arg_str))
 				if command_list[cmd]["arg_type"] == "int":
 					arg = int.to_bytes(int(input("Argument: ")), length=command_list[cmd]["arg_len"], byteorder="little")
 
 				# send command
 				ser_lock.acquire()
 				ser.write(command_list[cmd]["encoding"])
-				ser.write(command_list[cmd]["arg_len"])
+				ser.write(int.to_bytes(command_list[cmd]["arg_len"], length=1, byteorder="little"))
 				ser.write(arg)
 				ser_lock.release()
 
-				logging.info(f"Sent command {command_list[cmd]} with argument (raw bytestring) {arg}")
+				logging.info(f"Sent command {cmd} with argument (raw bytestring) {arg}")
 
 			except Exception as e:
 				logging.error(f"Command input error: {str(e)}")
