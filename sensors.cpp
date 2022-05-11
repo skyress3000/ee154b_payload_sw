@@ -3,6 +3,7 @@
 #include <Wire.h>
 
 #include "config.h"
+#include "indicators.h"
 
 
 
@@ -20,6 +21,8 @@ void Sensors::init() {
 void Sensors::update() {
     if (imu.accelAvailable()) imu.readAccel();
     if (imu.gyroAvailable()) imu.readGyro();
+
+    blink_led(PIN_LED_SENSORS);
 }
 
 

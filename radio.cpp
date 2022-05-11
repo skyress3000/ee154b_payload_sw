@@ -28,7 +28,6 @@ void read_radio() {
             // don't keep trying
             return;
         }
-        uint8_t args_len = (uint8_t) tmp_serial_in;
         // buffer to put argument bytes into
         uint8_t args[256];
         // read in the argument bytes

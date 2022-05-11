@@ -91,16 +91,15 @@ void loop() {
     logger.end_line();
 
     // Transmit to ground
-    int written = 0;
-    written += SERIAL_RADIO.write(STAT_BYTE);
-    written += SERIAL_RADIO.print(gps.get_lat()); SERIAL_RADIO.print(",");
-    written += SERIAL_RADIO.print(gps.get_lng()); SERIAL_RADIO.print(",");
-    written += SERIAL_RADIO.print(gps.get_alt()); SERIAL_RADIO.print(",");
-    written += SERIAL_RADIO.print(sensors.get_current()); SERIAL_RADIO.print(",");
-    written += SERIAL_RADIO.print(heater.get_temp()); SERIAL_RADIO.print(",");
-    written += SERIAL_RADIO.print(payload.get_status()); SERIAL_RADIO.print(",");
+    SERIAL_RADIO.write(STAT_BYTE);
+    SERIAL_RADIO.print(gps.get_lat()); SERIAL_RADIO.print(",");
+    SERIAL_RADIO.print(gps.get_lng()); SERIAL_RADIO.print(",");
+    SERIAL_RADIO.print(gps.get_alt()); SERIAL_RADIO.print(",");
+    SERIAL_RADIO.print(sensors.get_current()); SERIAL_RADIO.print(",");
+    SERIAL_RADIO.print(heater.get_temp()); SERIAL_RADIO.print(",");
+    SERIAL_RADIO.print(payload.get_status());
+    SERIAL_RADIO.print('\n');
     blink_led(PIN_LED_RF);
-    if (written > 0) blink_led(PIN_LED_RF);
 }
 
 
@@ -121,7 +120,6 @@ uint8_t cmd_payload(uint8_t *args, uint8_t args_len, uint8_t* resp_buf) {
     }
 
     String resp = payload.get_response(payload_cmd);
-    if (resp.length() == 0) resp = "PAYLOAD UNRESPONSIVE";
     resp.toCharArray((char *)resp_buf, 256);
 
     return resp.length();
