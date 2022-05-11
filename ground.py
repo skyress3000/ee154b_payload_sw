@@ -14,15 +14,30 @@ ser = None
 ser_lock = threading.Lock() # idk if the serial object will like being called from multiple threads so lock it just to be sure
 
 command_list = {
-	"EXAMPLE_COMMAND": {
-		"arg_type": "string", # either "string", "int", or "none"
-		"arg_len": 2, # number of bytes the argument should take
-		"encoding": b'e' # character representing this command, should match radio.cpp table
-	},
-	"ECHO": { # for testing
+#	"EXAMPLE_COMMAND": {
+#		"arg_type": "string", # either "string", "int", or "none"
+#		"arg_len": 2, # number of bytes the argument should take
+#		"encoding": b'e' # character representing this command, should match radio.cpp table
+#	},
+	"ECHO": {
 		"arg_type": "string", 
-		"arg_len": 16,
-		"encoding": b'E'
+		"arg_len": 64,
+		"encoding": b'\x03'
+	},
+	"PAYLOAD": {
+		"arg_type": "string", 
+		"arg_len": 64,
+		"encoding": b'\x0C'
+	},
+	"REBOOT": {
+		"arg_type": "none", 
+		"arg_len": 0,
+		"encoding": b'\x30'
+	},
+	"OPEN_HATCH": {
+		"arg_type": "none", 
+		"arg_len": 0,
+		"encoding": b'\xC0'
 	}
 }
 

@@ -20,8 +20,9 @@ void read_radio() {
 
         // first 2 bytes should be command and arg length
         uint8_t cmd = SERIAL_RADIO.read();
-        tmp_serial_in = SERIAL_RADIO.read();
-        if(tmp_serial_in == -1) {
+        uint8_t args_len;
+        int bytes = SERIAL_RADIO.readBytes(&args_len, 1);
+        if(bytes == 0) {
             // timed out when we should've received data
             SERIAL_RADIO.write(ERR_BYTE);
             // don't keep trying
@@ -31,15 +32,12 @@ void read_radio() {
         // buffer to put argument bytes into
         uint8_t args[256];
         // read in the argument bytes
-        for(int i = 0; i < args_len; i++) {
-            tmp_serial_in = SERIAL_RADIO.read();
-            if(tmp_serial_in == -1) {
-                // timed out when we should've received data
-                SERIAL_RADIO.write(ERR_BYTE);
-                // don't keep trying
-                return;
-            }
-            args[i] = (uint8_t) tmp_serial_in;
+        bytes = SERIAL_RADIO.readBytes(args, args_len);
+        if(bytes < args_len) {
+            // timed out when we should've received data
+            SERIAL_RADIO.write(ERR_BYTE);
+            // don't keep trying
+            return;
         }
         // received everything successfully
         // we don't do any error checking here because the radios already have error checking built in
