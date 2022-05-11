@@ -11,6 +11,7 @@ void Hatch::init() {
 
 void Hatch::open() {
     if (!is_open) {
+        Serial.println("opening hatch");
         open_start_time = millis();
         analogWrite(PIN_BURN_WIRE, 25);
         is_open = true;

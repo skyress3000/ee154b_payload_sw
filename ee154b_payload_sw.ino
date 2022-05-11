@@ -128,9 +128,11 @@ uint8_t cmd_payload(uint8_t *args, uint8_t args_len, uint8_t* resp_buf) {
 
 uint8_t cmd_reboot(uint8_t *args, uint8_t args_len, uint8_t* resp_buf) {
     payload.reboot();
+    return 0;
 }
 
 
 uint8_t cmd_open_hatch(uint8_t *args, uint8_t args_len, uint8_t* resp_buf) {
     hatch.open();
+    return 0;
 }
