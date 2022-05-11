@@ -5,6 +5,8 @@
 #include "logger.h"
 #include "heater.h"
 #include "sensors.h"
+#include "hatch.h"
+#include "radio.h"
 
 
 Payload payload(2400);
@@ -12,6 +14,7 @@ GPS gps;
 Logger logger;
 Heater heater;
 Sensors sensors;
+Hatch hatch;
 
 
 void setup() {
@@ -27,6 +30,8 @@ void setup() {
     gps.init();
     logger.init();
     sensors.init();
+    hatch.init();
+    SERIAL_RADIO.begin(57600);
 
     delay(1000);
     Serial.println("boot done");
@@ -50,13 +55,16 @@ void setup() {
 
 
 void loop() {
-    // TODO: check for and handle incoming command
+    read_radio();
 
     // Update everything
     payload.update();
     gps.update(1000);
     heater.update();
     sensors.update();
+    hatch.update();
+
+    if (gps.get_alt() >= HATCH_OPEN_ALT) hatch.open();
 
     // Write to log
     logger.write_item(gps.get_timestamp());
@@ -82,5 +90,49 @@ void loop() {
     logger.write_item(String(payload.get_status()));
     logger.end_line();
 
-    // TODO: Transmit to ground
+    // Transmit to ground
+    int written = 0;
+    written += SERIAL_RADIO.write(STAT_BYTE);
+    written += SERIAL_RADIO.print(gps.get_lat()); SERIAL_RADIO.print(",");
+    written += SERIAL_RADIO.print(gps.get_lng()); SERIAL_RADIO.print(",");
+    written += SERIAL_RADIO.print(gps.get_alt()); SERIAL_RADIO.print(",");
+    written += SERIAL_RADIO.print(sensors.get_current()); SERIAL_RADIO.print(",");
+    written += SERIAL_RADIO.print(heater.get_temp()); SERIAL_RADIO.print(",");
+    written += SERIAL_RADIO.print(payload.get_status()); SERIAL_RADIO.print(",");
+    blink_led(PIN_LED_RF);
+    if (written > 0) blink_led(PIN_LED_RF);
+}
+
+
+// Radio command implementations
+uint8_t cmd_echo(uint8_t *args, uint8_t args_len, uint8_t* resp_buf) {
+    for (uint8_t i = 0; i < args_len; i++) {
+        resp_buf[i] = args[i];
+    }
+
+    return args_len;
+}
+
+
+uint8_t cmd_payload(uint8_t *args, uint8_t args_len, uint8_t* resp_buf) {
+    String payload_cmd;
+    for (uint8_t i = 0; i < args_len; i++) {
+        payload_cmd += args[i];
+    }
+
+    String resp = payload.get_response(payload_cmd);
+    if (resp.length() == 0) resp = "PAYLOAD UNRESPONSIVE";
+    resp.toCharArray((char *)resp_buf, 256);
+
+    return resp.length();
+}
+
+
+uint8_t cmd_reboot(uint8_t *args, uint8_t args_len, uint8_t* resp_buf) {
+    payload.reboot();
+}
+
+
+uint8_t cmd_open_hatch(uint8_t *args, uint8_t args_len, uint8_t* resp_buf) {
+    hatch.open();
 }

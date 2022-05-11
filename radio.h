@@ -1,3 +1,4 @@
+#include <Arduino.h>
 // functions
 
 // function to read radio commands from serial and handle them. Should be called by main loop
@@ -14,7 +15,7 @@ void read_radio();
 
 typedef struct {
     const uint8_t command_byte;                                                 // byte sent over radio to run this command
-    uint8_t (*run_command)(uint8_t* args, int args_len, uint8_t* resp_buff);    // function to run this command
+    uint8_t (*run_command)(uint8_t* args, uint8_t args_len, uint8_t* resp_buff);    // function to run this command
                                                                                 // args: char sequence following command to be interpreted by function
                                                                                 // args_len: number of bytes in args
                                                                                 // resp_buff: buffer to write response into

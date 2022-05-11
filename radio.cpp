@@ -1,37 +1,41 @@
 #include "radio.h"
+
 #include <Arduino.h>
 
+#include "config.h"
+#include "indicators.h"
+
 command_t command_list[] = {
-    {
-        EXAMPLE_COMMAND,
-        run_example_command
-    }
+    { CMD_ECHO, &cmd_echo },
+    { CMD_PAYLOAD, &cmd_payload },
+    { CMD_REBOOT, &cmd_reboot },
+    { CMD_OPEN_HATCH, &cmd_open_hatch },
 };
 
 int n_commands = sizeof(command_list)/sizeof(command_t);
 
 void read_radio() {
-    if(Serial1.available()) {
+    if(SERIAL_RADIO.available()) {
         int tmp_serial_in; // used for checking for timeout
 
         // first 2 bytes should be command and arg length
-        uint8_t cmd = Serial1.read();
-        tmp_serial_in = Serial1.read()
+        uint8_t cmd = SERIAL_RADIO.read();
+        tmp_serial_in = SERIAL_RADIO.read();
         if(tmp_serial_in == -1) {
             // timed out when we should've received data
-            Serial1.write(ERR_BYTE);
+            SERIAL_RADIO.write(ERR_BYTE);
             // don't keep trying
             return;
         }
         uint8_t args_len = (uint8_t) tmp_serial_in;
         // buffer to put argument bytes into
-        uint8_t[256] args;
+        uint8_t args[256];
         // read in the argument bytes
         for(int i = 0; i < args_len; i++) {
-            tmp_serial_in = Serial1.read()
+            tmp_serial_in = SERIAL_RADIO.read();
             if(tmp_serial_in == -1) {
                 // timed out when we should've received data
-                Serial1.write(ERR_BYTE);
+                SERIAL_RADIO.write(ERR_BYTE);
                 // don't keep trying
                 return;
             }
@@ -39,10 +43,14 @@ void read_radio() {
         }
         // received everything successfully
         // we don't do any error checking here because the radios already have error checking built in
-        Serial1.write(ACK_BYTE);
+        SERIAL_RADIO.write(ACK_BYTE);
+
+        blink_led(PIN_LED_RF);
+        blink_led(PIN_LED_RF);
+        blink_led(PIN_LED_RF);
 
         // response from the command
-        uint8_t[256] resp;
+        uint8_t resp[256];
         uint8_t resp_len;
         // if we've found it, to make sure we do
         int found_cmd = 0;
@@ -58,12 +66,12 @@ void read_radio() {
 
         if(found_cmd) {
             // indicate command finished
-            Serial1.write(DONE_BYTE);
+            SERIAL_RADIO.write(DONE_BYTE);
             // send the response back once done
-            Serial1.write(resp, resp_len);
+            SERIAL_RADIO.write(resp, resp_len);
         } else {
             // got an invalid command
-            Serial1.write(ERR_BYTE);
+            SERIAL_RADIO.write(ERR_BYTE);
         }
     }
 }

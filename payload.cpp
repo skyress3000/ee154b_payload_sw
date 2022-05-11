@@ -17,6 +17,7 @@ void Payload::reboot() {
     SERIAL_PAYLOAD.begin(9600);
 
     state = PayloadState::BOOTING;
+    status_str = "PAYLOAD BOOTING";
     set_led(PIN_LED_LKM);
 }
 
@@ -51,8 +52,11 @@ void Payload::update() {
 
         default:
             status_str = get_response("$STAT,;");
+            status_str.trim();
+
             if (status_str.length() == 0) {
                 state = PayloadState::UNRESPONSIVE;
+                status_str = "PAYLOAD UNRESPONSIVE";
                 blink_led(PIN_LED_LKM);
             } else {
                 state = PayloadState::WORKING;
