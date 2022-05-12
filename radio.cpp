@@ -8,7 +8,7 @@
 command_t command_list[] = {
     { CMD_ECHO, &cmd_echo },
     { CMD_PAYLOAD, &cmd_payload },
-    { CMD_REBOOT, &cmd_reboot },
+    { CMD_PAYLOAD_REBOOT, &cmd_payload_reboot },
     { CMD_OPEN_HATCH, &cmd_open_hatch },
 };
 

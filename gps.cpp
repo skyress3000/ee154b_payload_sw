@@ -17,12 +17,17 @@ void GPS::update(unsigned long ms) {
         }
     }
 
-    if (gps.satellites.value() >= 3) {
+    if (gps.satellites.value() >= 4) {
         blink_led(PIN_LED_GPS);
         blink_led(PIN_LED_GPS);
     } else {
         blink_led(PIN_LED_GPS);
     }
+}
+
+
+unsigned int GPS::get_sats() {
+    return gps.satellites.value();
 }
 
 

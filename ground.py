@@ -29,7 +29,7 @@ command_list = {
 		"arg_len": 64,
 		"encoding": b'\x0C'
 	},
-	"REBOOT": {
+	"PAYLOAD_REBOOT": {
 		"arg_type": "none", 
 		"arg_len": 0,
 		"encoding": b'\x30'
