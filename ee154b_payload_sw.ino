@@ -16,6 +16,8 @@ Heater heater;
 Sensors sensors;
 Hatch hatch;
 
+unsigned long last_rf_time = 0;
+
 
 void setup() {
     indicators_init();
@@ -89,16 +91,21 @@ void loop() {
     logger.end_line();
 
     // Transmit to ground
-    SERIAL_RADIO.write(STAT_BYTE);
-    SERIAL_RADIO.print(gps.get_sats()); SERIAL_RADIO.print(",");
-    SERIAL_RADIO.print(gps.get_lat()); SERIAL_RADIO.print(",");
-    SERIAL_RADIO.print(gps.get_lng()); SERIAL_RADIO.print(",");
-    SERIAL_RADIO.print(sensors.get_alt()); SERIAL_RADIO.print(",");
-    SERIAL_RADIO.print(sensors.get_current()); SERIAL_RADIO.print(",");
-    SERIAL_RADIO.print(heater.get_temp()); SERIAL_RADIO.print(",");
-    SERIAL_RADIO.print(payload.get_status());
-    SERIAL_RADIO.print('\n');
-    blink_led(PIN_LED_RF);
+    if ((millis() - last_rf_time) / 1000 >= RF_TX_INTERVAL) {
+        SERIAL_RADIO.write(STAT_BYTE);
+        SERIAL_RADIO.print(gps.get_sats()); SERIAL_RADIO.print(",");
+        SERIAL_RADIO.print(gps.get_lat()); SERIAL_RADIO.print(",");
+        SERIAL_RADIO.print(gps.get_lng()); SERIAL_RADIO.print(",");
+        SERIAL_RADIO.print(sensors.get_alt()); SERIAL_RADIO.print(",");
+        SERIAL_RADIO.print(sensors.get_current()); SERIAL_RADIO.print(",");
+        SERIAL_RADIO.print(heater.get_temp()); SERIAL_RADIO.print(",");
+        SERIAL_RADIO.print(payload.get_status());
+        SERIAL_RADIO.print('\n');
+
+        blink_led(PIN_LED_RF);
+
+        last_rf_time = millis();
+    }
 }
 
 

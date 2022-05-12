@@ -23,6 +23,8 @@
 
 #define LOG_FILENAME "log.csv"
 
+#define RF_TX_INTERVAL 30 // approx number of seconds between RF transmissions
+
 // Payload config
 #define N_ATTEMPTS 5
 #define PAYLOAD_TIMEOUT 500
