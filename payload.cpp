@@ -10,7 +10,7 @@ void Payload::reboot() {
     Serial.println("rebooting payload");
 
     digitalWrite(PIN_PAYLOAD_POWER, LOW);
-    delay(1000);
+    delay(PAYLOAD_BOOT_TIME);
     digitalWrite(PIN_PAYLOAD_POWER, HIGH);
 
     // SERIAL_PAYLOAD.end();
@@ -54,7 +54,7 @@ void Payload::update() {
             status_str = get_response("$STAT,;");
             status_str.trim();
 
-            if (status_str.length() == 0) {
+            if (status_str.length() <= 20) {
                 state = PayloadState::UNRESPONSIVE;
                 status_str = "PAYLOAD UNRESPONSIVE";
                 blink_led(PIN_LED_LKM);
