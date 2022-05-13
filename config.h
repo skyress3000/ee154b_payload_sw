@@ -30,7 +30,7 @@
 #define PAYLOAD_TIMEOUT 500
 #define PAYLOAD_BOOT_TIME 5000
 
-#define HEATER_SETPOINT 0.0 // deg C
+#define HEATER_SETPOINT -16.0 // deg C
 
 // Hatch config
 #define HATCH_OPEN_ALT 100 // feet

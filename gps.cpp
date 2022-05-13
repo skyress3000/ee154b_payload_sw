@@ -17,7 +17,7 @@ void GPS::update(unsigned long ms) {
         }
     }
 
-    if (gps.satellites.value() >= 4) {
+    if (gps.satellites.value() >= 3) {
         blink_led(PIN_LED_GPS);
         blink_led(PIN_LED_GPS);
     } else {
