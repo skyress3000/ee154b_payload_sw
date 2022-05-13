@@ -2,6 +2,7 @@ import serial
 import serial.tools.list_ports
 import threading
 import logging
+import time
 
 
 ACK_BYTE    = b'\xFF' # response indicating a command has been received
@@ -16,30 +17,28 @@ ser_lock = threading.Lock() # idk if the serial object will like being called fr
 command_list = {
 #	"EXAMPLE_COMMAND": {
 #		"arg_type": "string", # either "string", "int", or "none"
-#		"arg_len": 2, # number of bytes the argument should take
+#		"arg_len": 2, # number of bytes the argument should take, only for ints
 #		"encoding": b'e' # character representing this command, should match radio.cpp table
 #	},
 	"ECHO": {
 		"arg_type": "string", 
-		"arg_len": 64,
 		"encoding": b'\x03'
 	},
 	"PAYLOAD": {
 		"arg_type": "string", 
-		"arg_len": 64,
 		"encoding": b'\x0C'
 	},
-	"REBOOT": {
+	"PAYLOAD_REBOOT": {
 		"arg_type": "none", 
-		"arg_len": 0,
 		"encoding": b'\x30'
 	},
 	"OPEN_HATCH": {
 		"arg_type": "none", 
-		"arg_len": 0,
 		"encoding": b'\xC0'
 	}
 }
+
+check_rssi = True
 
 def serial_logging():
 	# reset the serial port so we don't have junk in the buffer to start
@@ -59,6 +58,21 @@ def serial_logging():
 			elif(resp_byte == STAT_BYTE):
 				stat_str = ser.readline().decode('ascii')
 				logging.info(f"Payload status: {stat_str}"[:-1])
+				if check_rssi:
+					# read RSSI from radio
+					time.sleep(1)
+					ser.write(b'+++')
+					time.sleep(1)
+					# wait to go into cmd mode
+					while ser.in_waiting == 0:
+						None
+					ser.readline() # clear OK line
+					ser.write(b'ATI7\x0A\x0D') # request RSSI
+					ser.readline() # clear line
+					logging.info(f"Radio RSSI report: {ser.readline()}")
+					ser.readline() # clear another useless line
+					ser.write(b'ATO\x0A\x0D') # exit command mode
+					ser.readline() # clear line
 			else:
 				logging.warning(f"Unknown byte received: {int.from_bytes(resp_byte, 'little'):#02x}")
 			
@@ -68,7 +82,7 @@ if __name__ == "__main__":
 	format = "[%(levelname)s] %(asctime)s: %(message)s"
 	logging.basicConfig(handlers=[
         logging.FileHandler("ee154b_HAB_comms.log"),
-        logging.StreamHandler()
+        #logging.StreamHandler()
     ], format=format, level=logging.INFO)
 
 	logging.info("--- Starting ground station interface ---")
@@ -95,17 +109,20 @@ if __name__ == "__main__":
 		else:
 			try:
 				arg = b''
+				arg_len = 0
 				if command_list[cmd]["arg_type"] == "string":
 					arg_str = input("Argument: ")
 					# truncate to argument length if needed, and add extra 0s if needed to get to the correct length
-					arg = arg_str[:min(command_list[cmd]["arg_len"], len(arg_str))].encode('ascii') + b'\x00'*max(0, command_list[cmd]["arg_len"]-len(arg_str))
+					arg = arg_str[:min(256, len(arg_str))].encode('ascii')
+					arg_len = min(256, len(arg_str))
 				if command_list[cmd]["arg_type"] == "int":
 					arg = int.to_bytes(int(input("Argument: ")), length=command_list[cmd]["arg_len"], byteorder="little")
+					arg_len = command_list[cmd]["arg_len"]
 
 				# send command
 				ser_lock.acquire()
 				ser.write(command_list[cmd]["encoding"])
-				ser.write(int.to_bytes(command_list[cmd]["arg_len"], length=1, byteorder="little"))
+				ser.write(int.to_bytes(arg_len, length=1, byteorder="little"))
 				ser.write(arg)
 				ser_lock.release()
 
